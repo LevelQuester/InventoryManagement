@@ -1,5 +1,4 @@
-#include "electronics.h"
-#include "grocery.h"
+#include "item_factory.h"
 #include "inventory.h"
 
 #include <iostream>
@@ -9,10 +8,10 @@ int main() {
 
     Inventory inventory;
 
-    inventory.addItem(std::make_shared<Electronics>("E1", "Phone", 10, 699.99, 24));
-    inventory.addItem(std::make_shared<Electronics>("E2", "Laptop", 5, 1099.99, 12));
-    inventory.addItem(std::make_shared<Grocery>("G1", "Apple", 100, 0.99, "2026-06-01"));
-    inventory.addItem(std::make_shared<Grocery>("G2", "Milk", 30, 1.49, "2026-04-10"));
+    inventory.addItem(makeElectronics("E1", "Phone", 10, 699.99, 24));
+    inventory.addItem(makeElectronics("E2", "Laptop", 5, 1099.99, 12));
+    inventory.addItem(makeGrocery("G1", "Apple", 100, 0.99, "2026-06-01"));
+    inventory.addItem(makeGrocery("G2", "Milk", 30, 1.49, "2026-04-10"));
 
     inventory.displayInventory();
 
@@ -22,5 +21,14 @@ int main() {
 
     std::cout << "Updating quantity G1 to 50\n";
     inventory.updateQuantity("G1", 50);
+    inventory.displayInventory();
+
+    std::cout << "Moving inventory\n";
+    Inventory newInventory = std::move(inventory);
+
+    std::cout << "New inventory\n";
+    newInventory.displayInventory();
+
+    std::cout << "Old inventory\n";
     inventory.displayInventory();
 }
