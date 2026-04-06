@@ -12,6 +12,7 @@ add_executable(inventory
     src/item.cpp
     src/electronics.cpp
     src/grocery.cpp
+    src/inventory.cpp
 )
 
 target_include_directories(inventory PRIVATE ${PROJECT_SOURCE_DIR}/include)
