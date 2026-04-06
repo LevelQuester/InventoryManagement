@@ -4,46 +4,170 @@
 
 #include <iostream>
 #include <memory>
+#include <algorithm>
+#include <string>
 
-int main() {
+namespace {
 
-    Inventory inventory;
+std::string readLine(const std::string& prompt) {
+    std::cout << prompt;
+    std::string input;
+    if (!std::getline(std::cin, input)) {
+        throw InventoryException{"Unexpected end of input"};
+    }
+    return input;
+}
 
-    inventory.addItem(makeElectronics("E1", "Phone", 10, 699.99, 24));
-    inventory.addItem(makeElectronics("E2", "Laptop", 5, 1099.99, 12));
-    inventory.addItem(makeGrocery("G1", "Apple", 100, 0.99, "2026-06-01"));
-    inventory.addItem(makeGrocery("G2", "Milk", 30, 1.49, "2026-04-10"));
+int readInt(const std::string& prompt) {
+    auto input = readLine(prompt);
+    std::size_t pos{};
+    auto value = std::stoi(input, &pos);
+    if (pos != input.size()) {
+        throw InvalidValueException{"Expected an integer"};
+    }
+    return value;
+}
 
-    inventory.displayInventory();
+double readDouble(const std::string& prompt) {
+    auto input = readLine(prompt);
+    std::size_t pos{};
+    auto value = std::stod(input, &pos);
+    if (pos != input.size()) {
+        throw InvalidValueException{"Expected a number"};
+    }
+    return value;
+}
 
-    std::cout << "Items with quantity < 20\n";
-    auto low_stock = filterItems(inventory, [](const auto& item) {
-        return item->quantity() < 20;
+void printMenu() {
+    std::cout << "\n=== Inventory Management System ===\n"
+              << " 1. Add Electronics\n"
+              << " 2. Add Grocery\n"
+              << " 3. Remove Item\n"
+              << " 4. Update Quantity\n"
+              << " 5. Display Inventory\n"
+              << " 6. Read from File\n"
+              << " 7. Write to File\n"
+              << " 8. Find Most Expensive Item\n"
+              << " 9. Find Items Below Quantity Threshold\n"
+              << "10. Sort by Price\n"
+              << "11. Exit\n";
+} 
+
+void addElectronics(Inventory& inv) {
+    auto id    = readLine("Item ID: ");
+    auto name  = readLine("Name: ");
+    auto qty   = readInt("Quantity: ");
+    auto price = readDouble("Price: ");
+    auto warranty = readInt("Warranty (months): ");
+    inv.addItem(makeElectronics(id, name, qty, price, warranty));
+    std::cout << "Electronics item added\n";
+}
+
+void addGrocery(Inventory& inv) {
+    auto id    = readLine("Item ID: ");
+    auto name  = readLine("Name: ");
+    auto qty   = readInt("Quantity: ");
+    auto price = readDouble("Price: ");
+    auto exp   = readLine("Expiration date (YYYY-MM-DD): ");
+    inv.addItem(makeGrocery(id, name, qty, price, exp));
+    std::cout << "Grocery item added\n";
+}
+
+void removeItem(Inventory& inv) {
+    auto id = readLine("Item ID to remove: ");
+    inv.removeItem(id);
+    std::cout << "Item removed\n";
+} 
+
+void updateQuantity(Inventory& inv) {
+    auto id  = readLine("Item ID: ");
+    auto qty = readInt("New quantity: ");
+    inv.updateQuantity(id, qty);
+    std::cout << "Quantity updated\n";
+}
+
+void readFromFile(Inventory& inv) {
+    auto filename = readLine("Filename: ");
+    inv.readFromFile(filename);
+    std::cout << "Inventory loaded from " << filename << "\n";
+}
+
+void writeToFile(const Inventory& inv) {
+    auto filename = readLine("Filename: ");
+    inv.writeToFile(filename);
+    std::cout << "Inventory saved to " << filename << "\n";
+}
+
+void findMostExpensive(const Inventory& inv) {
+    const auto& items = inv.items();
+    if (items.empty()) {
+        std::cout << "Inventory is empty\n";
+        return;
+    }
+    auto it = std::max_element(items.begin(), items.end(),
+        [](const auto& a, const auto& b) {
+            return a->price() < b->price();
+        });
+    std::cout << "Most expensive item:\n";
+    (*it)->display();
+}
+
+void findBelowThreshold(const Inventory& inv) {
+    auto threshold = readInt("Quantity threshold: ");
+    auto results = filterItems(inv, [threshold](const auto& item) {
+        return item->quantity() < threshold;
     });
-    for (const auto& item : low_stock) {
+    if (results.empty()) {
+        std::cout << "No items below threshold\n";
+        return;
+    }
+    for (const auto& item : results) {
         item->display();
     }
+}
 
-    std::cout << "Sorted by price\n";
-    sortItems(inventory, [](const auto& item) {
-        return item->price();
-    });
-    inventory.displayInventory();
+void sortByPrice(Inventory& inv) {
+    sortItems(inv, [](const auto& item) { return item->price(); });
+    std::cout << "Inventory sorted by price\n";
+    inv.displayInventory();
+}
 
-    std::cout << "Removing E1\n";
-    inventory.removeItem("E1");
-    inventory.displayInventory();
+} // namespace
 
-    std::cout << "Updating quantity G1 to 50\n";
-    inventory.updateQuantity("G1", 50);
-    inventory.displayInventory();
+int main() {
+    Inventory inventory;
+    bool running = true;
 
-    std::cout << "Moving inventory\n";
-    Inventory newInventory = std::move(inventory);
+    while (running) {
+        printMenu();
 
-    std::cout << "New inventory\n";
-    newInventory.displayInventory();
+        int choice{};
+        try {
+            choice = readInt("Choose [1-11]: ");
+        } catch (const std::exception&) {
+            std::cerr << "Error: Invalid menu choice\n";
+            continue;
+        }
 
-    std::cout << "Old inventory\n";
-    inventory.displayInventory();
+        try {
+            switch (choice) {
+                case 1:  addElectronics(inventory);          break;
+                case 2:  addGrocery(inventory);              break;
+                case 3:  removeItem(inventory);              break;
+                case 4:  updateQuantity(inventory);          break;
+                case 5:  inventory.displayInventory();       break;
+                case 6:  readFromFile(inventory);            break;
+                case 7:  writeToFile(inventory);             break;
+                case 8:  findMostExpensive(inventory);       break;
+                case 9:  findBelowThreshold(inventory);     break;
+                case 10: sortByPrice(inventory);             break;
+                case 11: running = false;                    break;
+                default: std::cout << "Invalid choice.\n";   break;
+            }
+        } catch (const InventoryException& e) {
+            std::cerr << "Error: " << e.what() << "\n";
+        } catch (const std::exception& e) {
+            std::cerr << "Unexpected error: " << e.what() << "\n";
+        }
+    }
 }
