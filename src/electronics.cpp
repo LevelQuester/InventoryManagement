@@ -7,7 +7,11 @@ Electronics::Electronics(std::string item_id, std::string name,
     int quantity, double price, int warranty_months)
 : Item{std::move(item_id), std::move(name), quantity, price}
 , warranty_months_{warranty_months}
-{}
+{
+    if (warranty_months < 0) {
+        throw InvalidValueException{"Warranty months must be non-negative."};
+    }
+}
 
 std::string Electronics::category() const { return "Electronics"; }
 
@@ -27,5 +31,10 @@ std::optional<std::string> Electronics::findAttribute(const std::string& key) co
 }
 
 int Electronics::warrantyMonths() const noexcept { return warranty_months_; }
-void Electronics::setWarrantyMonths(int months) { warranty_months_ = months; }
+void Electronics::setWarrantyMonths(int months) {
+    if (months < 0) {
+        throw InvalidValueException{"Warranty months must be non-negative."};
+    }
+    warranty_months_ = months;
+}
 

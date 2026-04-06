@@ -3,6 +3,11 @@
 #include <iostream>
 
 void Inventory::addItem(std::shared_ptr<Item> item) {
+    for (const auto& existing : items_) {
+        if (existing->itemId() == item->itemId()) {
+            throw DuplicateItemException{item->itemId()};
+        }
+    }
     items_.push_back(std::move(item));
 }
 
@@ -11,6 +16,9 @@ void Inventory::removeItem(const std::string& item_id) {
         [&item_id](const auto& item) {
             return item->itemId() == item_id;
         });
+    if (it == items_.end()) {
+        throw ItemNotFoundException{item_id};
+    }
     items_.erase(it, items_.end());
 }
 
@@ -21,6 +29,7 @@ void Inventory::updateQuantity(const std::string& item_id, int quantity) {
             return;
         }
     }
+    throw ItemNotFoundException{item_id};
 }
 
 void Inventory::displayInventory() const {
@@ -28,10 +37,9 @@ void Inventory::displayInventory() const {
         item->display();
     }
 }
-
 const std::vector<std::shared_ptr<Item>>& Inventory::items() const noexcept {
     return items_;
-} 
+}
 
 std::vector<std::shared_ptr<Item>>& Inventory::items() noexcept {
     return items_;
