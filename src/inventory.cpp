@@ -32,3 +32,7 @@ void Inventory::displayInventory() const {
 const std::vector<std::shared_ptr<Item>>& Inventory::items() const noexcept {
     return items_;
 } 
+
+std::vector<std::shared_ptr<Item>>& Inventory::items() noexcept {
+    return items_;
+}

@@ -22,6 +22,7 @@ class Inventory {
         void displayInventory() const;
 
         [[nodiscard]] const std::vector<std::shared_ptr<Item>>& items() const noexcept;
+        [[nodiscard]] std::vector<std::shared_ptr<Item>>& items() noexcept;
     private:
         std::vector<std::shared_ptr<Item>> items_;
 };

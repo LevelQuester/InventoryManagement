@@ -1,5 +1,6 @@
 #include "item_factory.h"
 #include "inventory.h"
+#include "algorithms.h"
 
 #include <iostream>
 #include <memory>
@@ -13,6 +14,20 @@ int main() {
     inventory.addItem(makeGrocery("G1", "Apple", 100, 0.99, "2026-06-01"));
     inventory.addItem(makeGrocery("G2", "Milk", 30, 1.49, "2026-04-10"));
 
+    inventory.displayInventory();
+
+    std::cout << "Items with quantity < 20\n";
+    auto low_stock = filterItems(inventory, [](const auto& item) {
+        return item->quantity() < 20;
+    });
+    for (const auto& item : low_stock) {
+        item->display();
+    }
+
+    std::cout << "Sorted by price\n";
+    sortItems(inventory, [](const auto& item) {
+        return item->price();
+    });
     inventory.displayInventory();
 
     std::cout << "Removing E1\n";
