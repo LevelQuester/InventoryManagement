@@ -21,6 +21,9 @@ class Inventory {
         void updateQuantity(const std::string& item_id, int quantity);
         void displayInventory() const;
 
+        void readFromFile(const std::string& filename);
+        void writeToFile(const std::string& filename) const;
+
         [[nodiscard]] const std::vector<std::shared_ptr<Item>>& items() const noexcept;
         [[nodiscard]] std::vector<std::shared_ptr<Item>>& items() noexcept;
     private:
